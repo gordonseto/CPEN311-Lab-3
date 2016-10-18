@@ -56,7 +56,7 @@ typedef enum int unsigned {INIT = 1 , START = 2,
 // Here are some parameters that we will use in the code. 
  
 // These parameters contain information about the paddle 
-parameter PADDLE_WIDTH = 10;  // width, in pixels, of the paddle
+//parameter PADDLE_WIDTH = 10;  // width, in pixels, of the paddle
 parameter PADDLE_ROW = SCREEN_HEIGHT - 2;  // row to draw the paddle 
 parameter PADDLE_X_START = SCREEN_WIDTH / 2;  // starting x position of the paddle
 

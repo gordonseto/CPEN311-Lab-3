@@ -64,10 +64,17 @@ velocity puck_velocity;
 
 point puck2;
 velocity puck2_velocity;
+
+reg [DATA_WIDTH_COORD-1:0] PADDLE_WIDTH;
 	 
 // This will be used as a counter variable in the IDLE state
 
 integer clock_counter = 0;
+
+integer paddle_counter = 0;
+
+parameter PADDLE_LOOP_SPEED = 2*50000000;
+parameter INITIAL_PADDLE_WIDTH = 20;
 
 // Be sure to see all the constants, types, etc. defined in lab3_inc.h
 
@@ -99,6 +106,33 @@ vga_adapter #( .RESOLUTION("160x120"))
 assign x = draw.x[7:0];
 assign y = draw.y[6:0];
 
+
+always @(posedge CLOCK_50, negedge KEY[3])
+
+	if (KEY[3] == 1'b0) begin
+		paddle_counter <= 0;
+		PADDLE_WIDTH <= INITIAL_PADDLE_WIDTH;
+	end else begin
+ 		  // See if we are still counting.  PADDLE_LOOP_SPEED indicates the maximum 
+			// value of the counter
+		if (state == INIT) begin
+			PADDLE_WIDTH <= INITIAL_PADDLE_WIDTH;
+		end else
+        if (paddle_counter < PADDLE_LOOP_SPEED) begin
+		    paddle_counter <= paddle_counter + 1'b1;
+        end else begin 
+			 
+		// otherwise, we are done counting.  So get ready for the 
+		// next state which is ERASE_PADDLE_ENTER
+				  
+            paddle_counter <= 0;
+			
+			if (PADDLE_WIDTH > 4) begin
+				PADDLE_WIDTH <= PADDLE_WIDTH - 1;
+			end
+	  
+		end  // if
+	end
 
 // ============================================================================= 
 // This is the main loop.  As described above, it is written in a combined
@@ -152,6 +186,10 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
             puck.y <= FACEOFF_Y[DATA_WIDTH_COORD-1:0];
             puck_velocity.x <= VELOCITY_START_X[DATA_WIDTH_COORD-1:0];
             puck_velocity.y <= VELOCITY_START_Y[DATA_WIDTH_COORD-1:0];
+			puck2.x <= FACEOFF_X2[DATA_WIDTH_COORD-1:0];
+			puck2.y <= FACEOFF_Y2[DATA_WIDTH_COORD-1:0];
+			puck2_velocity.x <= VELOCITY_START_X2[DATA_WIDTH_COORD-1:0];
+			puck2_velocity.y <= VELOCITY_START_Y2[DATA_WIDTH_COORD-1:0];
             colour <= BLACK;
             plot <= 1'b1;
             state <= START;
@@ -359,7 +397,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
 		  ERASE_PADDLE_LOOP: begin
 		  
 		      // See if we are done erasing the paddle (done with this state)
-            if (draw.x == paddle_x+PADDLE_WIDTH[DATA_WIDTH_COORD-1:0]) begin
+            if (draw.x == paddle_x+ INITIAL_PADDLE_WIDTH) begin
 			
 				  // If so, the next state is DRAW_PADDLE_ENTER. 
 				  
@@ -509,13 +547,62 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
 				  colour <= CYAN;
               plot <= 1'b1;
 				  draw <= puck;
+				  state <= ERASE_PUCK2;	  // next state is IDLE (which is the delay state)			  
+           end // case DRAW_PUCK
+		   
+        ERASE_PUCK2:  begin
+				  colour <= BLACK;  // erase by setting colour to black
+              plot <= 1'b1;
+				  draw <= puck2;  // the x and y lines are driven by "puck" which 
+				                 // holds the location of the puck.
+				  state <= DRAW_PUCK2;  // next state is DRAW_PUCK.
+
+				  // update the location of the puck 
+				  puck2.x = puck2.x + puck2_velocity.x;
+				  puck2.y = puck2.y + puck2_velocity.y;				  
+				  
+				  // See if we have bounced off the top of the screen
+				  if (puck2.y == TOP_LINE + 1) begin
+				     puck2_velocity.y = 0-puck2_velocity.y;
+				  end // if
+
+				  // See if we have bounced off the right or left of the screen
+				  if ( (puck2.x == LEFT_LINE + 1) |
+				       (puck2.x == RIGHT_LINE - 1)) begin 
+				     puck2_velocity.x = 0-puck2_velocity.x;
+				  end // if  
+		
+              // See if we have bounced of the paddle on the bottom row of
+	           // the screen		
+				  
+		        if (puck2.y == PADDLE_ROW - 1) begin 
+				     if ((puck2.x >= paddle_x) &
+					      (puck2.x <= paddle_x + PADDLE_WIDTH)) begin
+							
+					     // we have bounced off the paddle
+   				     puck2_velocity.y = 0-puck2_velocity.y;				
+				     end else begin
+				        // we are at the bottom row, but missed the paddle.  Reset game!
+					     state <= INIT;
+					  end // if
+				  end // if  
+			 end // ERASE_PUCK
+				  
+		  // ============================================================
+        // The DRAW_PUCK draws the puck.  Note that since
+		  // the puck is only one pixel, we only need to be here for one cycle.					 
+		  // ============================================================
+		  
+        DRAW_PUCK2: begin
+				  colour <= PURPLE;
+              plot <= 1'b1;
+				  draw <= puck2;
 				  state <= IDLE;	  // next state is IDLE (which is the delay state)			  
            end // case DRAW_PUCK
 			  
  		  // ============================================================
         // We'll never get here, but good practice to include it anyway
-		  // ============================================================
-		  
+		  // ============================================================  
 		  
         default:
 		    state <= START;
