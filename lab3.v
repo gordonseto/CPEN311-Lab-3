@@ -73,8 +73,10 @@ integer clock_counter = 0;
 
 integer paddle_counter = 0;
 
-parameter PADDLE_LOOP_SPEED = 2*50000000;
+parameter PADDLE_LOOP_SPEED = 50000000;
 parameter INITIAL_PADDLE_WIDTH = 20;
+
+reg [0:0] SHRINK_FLAG;
 
 // Be sure to see all the constants, types, etc. defined in lab3_inc.h
 
@@ -112,11 +114,14 @@ always @(posedge CLOCK_50, negedge KEY[3])
 	if (KEY[3] == 1'b0) begin
 		paddle_counter <= 0;
 		PADDLE_WIDTH <= INITIAL_PADDLE_WIDTH;
+		SHRINK_FLAG <= 0;
 	end else begin
  		  // See if we are still counting.  PADDLE_LOOP_SPEED indicates the maximum 
 			// value of the counter
 		if (state == INIT) begin
 			PADDLE_WIDTH <= INITIAL_PADDLE_WIDTH;
+			paddle_counter <= 0;
+			SHRINK_FLAG <= 0;
 		end else
         if (paddle_counter < PADDLE_LOOP_SPEED) begin
 		    paddle_counter <= paddle_counter + 1'b1;
@@ -127,11 +132,18 @@ always @(posedge CLOCK_50, negedge KEY[3])
 				  
             paddle_counter <= 0;
 			
-			if (PADDLE_WIDTH > 4) begin
-				PADDLE_WIDTH <= PADDLE_WIDTH - 1;
-			end
+			SHRINK_FLAG <= 1;
 	  
 		end  // if
+		
+		if (state == DRAW_PADDLE_ENTER) begin
+			if (SHRINK_FLAG == 1) begin
+				SHRINK_FLAG <= 0;
+				if (PADDLE_WIDTH > 4) begin
+					PADDLE_WIDTH <= PADDLE_WIDTH - 1;
+				end
+			end
+		end
 	end
 
 // ============================================================================= 
@@ -397,7 +409,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
 		  ERASE_PADDLE_LOOP: begin
 		  
 		      // See if we are done erasing the paddle (done with this state)
-            if (draw.x == paddle_x+ INITIAL_PADDLE_WIDTH) begin
+            if (draw.x == paddle_x+ PADDLE_WIDTH[DATA_WIDTH_COORD-1:0]) begin
 			
 				  // If so, the next state is DRAW_PADDLE_ENTER. 
 				  
@@ -475,7 +487,6 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
 		  DRAW_PADDLE_LOOP: begin
 		  
 		      // See if we are done drawing the paddle
-
             if (draw.x == paddle_x+PADDLE_WIDTH) begin
 				
 				  // If we are done drawing the paddle, set up for the next state
