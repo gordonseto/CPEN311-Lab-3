@@ -80,6 +80,8 @@ parameter VELOCITY_START_Y = 16'b0000000100000000;
 
 parameter VELOCITY_START_X2 = 16'b0000000100000000;
 parameter VELOCITY_START_Y2 = 16'b0000000100000000;
+
+parameter GRAVITY_VELOCITY_PER_SECOND = -16'b0000100111010000;
   
 // This parameter indicates how many times the counter should count in the
 // START state between each invocation of the main loop of the program.

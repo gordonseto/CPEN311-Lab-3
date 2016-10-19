@@ -217,8 +217,8 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
          START: begin
 		  
 		       // See if we are done erasing the screen		    
-            if (draw.x[DATA_WIDTH_COORD-1:FRAC_BITS] == SCREEN_WIDTH-1) begin
-              if (draw.y[DATA_WIDTH_COORD-1:FRAC_BITS] == SCREEN_HEIGHT-1) begin
+            if (draw.x[DATA_WIDTH_COORD-1:FRAC_BITS] == SCREEN_WIDTH[FRAC_BITS-1:0]- 1'b1) begin
+              if (draw.y[DATA_WIDTH_COORD-1:FRAC_BITS] == SCREEN_HEIGHT[FRAC_BITS-1:0] - 1'b1) begin
 				
 				     // We are done erasing the screen.  Set the next state 
 				     // to DRAW_TOP_ENTER
@@ -304,7 +304,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
 		  DRAW_RIGHT_LOOP: begin
 
 		  // See if we have been in this state long enough to have completed the line
-	   	  if (draw.y[DATA_WIDTH_COORD-1:FRAC_BITS] == SCREEN_HEIGHT-1) begin
+	   	  if (draw.y[DATA_WIDTH_COORD-1:FRAC_BITS] == SCREEN_HEIGHT[FRAC_BITS-1:0] - 1'b1) begin
 		  
 			     // We are done, so the next state is DRAW_LEFT_ENTER	  
 	 
@@ -339,7 +339,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
 		  DRAW_LEFT_LOOP: begin 
 
 		  // See if we have been in this state long enough to have completed the line		  
-          if (draw.y[DATA_WIDTH_COORD-1:FRAC_BITS] == SCREEN_HEIGHT-1) begin
+          if (draw.y[DATA_WIDTH_COORD-1:FRAC_BITS] == SCREEN_HEIGHT[FRAC_BITS-1:0] - 1'b1) begin
 
 			     // We are done, so get things set up for the IDLE state, which 
 				  // comes next.  
@@ -447,7 +447,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
 				     // If the user has pressed the right button check to make sure we
 					  // are not already at the rightmost position of the screen
 					  
-				     if (paddle_x[DATA_WIDTH_COORD-1:FRAC_BITS] <= RIGHT_LINE[FRAC_BITS-1:0] - PADDLE_WIDTH[FRAC_BITS-1:0] - 2) begin 
+				     if (paddle_x[DATA_WIDTH_COORD-1:FRAC_BITS] <= RIGHT_LINE[FRAC_BITS-1:0] - PADDLE_WIDTH[FRAC_BITS-1:0] - 2'b10) begin 
 
      					   // add 2 to the paddle position
                   	paddle_x[DATA_WIDTH_COORD-1:FRAC_BITS] = paddle_x[DATA_WIDTH_COORD-1:FRAC_BITS] + 2'b10;
@@ -463,7 +463,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
 				     // If the user has pressed the left button check to make sure we
 					  // are not already at the leftmost position of the screen
 				  
-				        if (paddle_x[DATA_WIDTH_COORD-1:FRAC_BITS] >= LEFT_LINE[FRAC_BITS-1:0] + 2) begin				 
+				        if (paddle_x[DATA_WIDTH_COORD-1:FRAC_BITS] >= LEFT_LINE[FRAC_BITS-1:0] + 2'b10) begin				 
 					        // subtract 2 from the paddle position 
    				        paddle_x[DATA_WIDTH_COORD-1:FRAC_BITS] = paddle_x[DATA_WIDTH_COORD-1:FRAC_BITS] - 2'b10;						
 					     end //if
@@ -523,20 +523,20 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
 				  puck.y = puck.y + puck_velocity.y;				  
 				  
 				  // See if we have bounced off the top of the screen
-				  if (puck.y[DATA_WIDTH_COORD-1:FRAC_BITS] == TOP_LINE[FRAC_BITS-1:0] + 1) begin
+				  if (puck.y[DATA_WIDTH_COORD-1:FRAC_BITS] == TOP_LINE[FRAC_BITS-1:0] + 1'b1) begin
 				     puck_velocity.y = 0-puck_velocity.y;
 				  end // if
 
 				  // See if we have bounced off the right or left of the screen
-				  if ( (puck.x[DATA_WIDTH_COORD-1:FRAC_BITS] == LEFT_LINE[FRAC_BITS-1:0] + 1) |
-				       (puck.x[DATA_WIDTH_COORD-1:FRAC_BITS] == RIGHT_LINE[FRAC_BITS-1:0] - 1)) begin 
+				  if ( (puck.x[DATA_WIDTH_COORD-1:FRAC_BITS] == LEFT_LINE[FRAC_BITS-1:0] + 1'b1) |
+				       (puck.x[DATA_WIDTH_COORD-1:FRAC_BITS] == RIGHT_LINE[FRAC_BITS-1:0] - 1'b1)) begin 
 				     puck_velocity.x = 0-puck_velocity.x;
 				  end // if  
 		
               // See if we have bounced of the paddle on the bottom row of
 	           // the screen		
 				  
-		        if (puck.y[DATA_WIDTH_COORD-1:FRAC_BITS] == PADDLE_ROW[FRAC_BITS-1:0] - 1) begin 
+		        if (puck.y[DATA_WIDTH_COORD-1:FRAC_BITS] == PADDLE_ROW[FRAC_BITS-1:0] - 1'b1) begin 
 				     if ((puck.x >= paddle_x) &
 					      (puck.x[DATA_WIDTH_COORD-1:FRAC_BITS] <= paddle_x[DATA_WIDTH_COORD-1:FRAC_BITS] + PADDLE_WIDTH[FRAC_BITS-1:0])) begin
 							
@@ -573,20 +573,20 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
 				  puck2.y = puck2.y + puck2_velocity.y;				  
 				  
 				  // See if we have bounced off the top of the screen
-				  if (puck2.y[DATA_WIDTH_COORD-1:FRAC_BITS] == TOP_LINE[FRAC_BITS-1:0] + 1) begin
+				  if (puck2.y[DATA_WIDTH_COORD-1:FRAC_BITS] == TOP_LINE[FRAC_BITS-1:0] + 1'b1) begin
 				     puck2_velocity.y = 0-puck2_velocity.y;
 				  end // if
 
 				  // See if we have bounced off the right or left of the screen
-				  if ( (puck2.x[DATA_WIDTH_COORD-1:FRAC_BITS] == LEFT_LINE[FRAC_BITS-1:0] + 1) |
-				       (puck2.x[DATA_WIDTH_COORD-1:FRAC_BITS] == RIGHT_LINE[FRAC_BITS-1:0] - 1)) begin 
+				  if ( (puck2.x[DATA_WIDTH_COORD-1:FRAC_BITS] == LEFT_LINE[FRAC_BITS-1:0] + 1'b1) |
+				       (puck2.x[DATA_WIDTH_COORD-1:FRAC_BITS] == RIGHT_LINE[FRAC_BITS-1:0] - 1'b1)) begin 
 				     puck2_velocity.x = 0-puck2_velocity.x;
 				  end // if  
 		
               // See if we have bounced of the paddle on the bottom row of
 	           // the screen		
 				  
-		        if (puck2.y[DATA_WIDTH_COORD-1:FRAC_BITS] == PADDLE_ROW[FRAC_BITS-1:0] - 1) begin 
+		        if (puck2.y[DATA_WIDTH_COORD-1:FRAC_BITS] == PADDLE_ROW[FRAC_BITS-1:0] - 1'b1) begin 
 				     if ((puck2.x >= paddle_x) &
 					      (puck2.x[DATA_WIDTH_COORD-1:FRAC_BITS] <= paddle_x[DATA_WIDTH_COORD-1:FRAC_BITS] + PADDLE_WIDTH[FRAC_BITS-1:0])) begin
 							
