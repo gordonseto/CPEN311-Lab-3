@@ -378,9 +378,65 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
 			 
 			     // otherwise, we are done counting.  So get ready for the 
 				  // next state which is ERASE_PADDLE_ENTER
+		
+				state <= ERASE_PADDLE_ENTER;  // next state
+				 clock_counter <= 0;
+		
+				puck_velocity.y = puck_velocity.y + GRAVITY_VELOCITY_PER_SECOND;
+				puck2_velocity.y = puck2_velocity.y + GRAVITY_VELOCITY_PER_SECOND;
+			
+							  // See if we have bounced off the top of the screen
+				  if (puck.y[DATA_WIDTH_COORD-1:FRAC_BITS] == TOP_LINE[FRAC_BITS-1:0] + 1'b1) begin
+				     puck_velocity.y = 0-puck_velocity.y;
+				  end // if
+
+				  // See if we have bounced off the right or left of the screen
+				  if ( (puck.x[DATA_WIDTH_COORD-1:FRAC_BITS] == LEFT_LINE[FRAC_BITS-1:0] + 1'b1) |
+				       (puck.x[DATA_WIDTH_COORD-1:FRAC_BITS] == RIGHT_LINE[FRAC_BITS-1:0] - 1'b1)) begin 
+				     puck_velocity.x = 0-puck_velocity.x;
+				  end // if  
+		
+              // See if we have bounced of the paddle on the bottom row of
+	           // the screen		
 				  
-              clock_counter <= 0;
-              state <= ERASE_PADDLE_ENTER;  // next state
+		        if (puck.y[DATA_WIDTH_COORD-1:FRAC_BITS] >= PADDLE_ROW[FRAC_BITS-1:0] - 1'b1) begin 
+				     if ((puck.x >= paddle_x) &
+					      (puck.x[DATA_WIDTH_COORD-1:FRAC_BITS] <= paddle_x[DATA_WIDTH_COORD-1:FRAC_BITS] + PADDLE_WIDTH[FRAC_BITS-1:0])) begin
+							
+					     // we have bounced off the paddle
+   				     puck_velocity.y = 0-puck_velocity.y;				
+				     end else begin
+				        // we are at the bottom row, but missed the paddle.  Reset game!
+					     state <= INIT;
+					  end // if
+				  end // if
+				
+								  // See if we have bounced off the top of the screen
+				  if (puck2.y[DATA_WIDTH_COORD-1:FRAC_BITS] == TOP_LINE[FRAC_BITS-1:0] + 1'b1) begin
+				     puck2_velocity.y = 0-puck2_velocity.y;
+				  end // if
+
+				  // See if we have bounced off the right or left of the screen
+				  if ( (puck2.x[DATA_WIDTH_COORD-1:FRAC_BITS] == LEFT_LINE[FRAC_BITS-1:0] + 1'b1) |
+				       (puck2.x[DATA_WIDTH_COORD-1:FRAC_BITS] == RIGHT_LINE[FRAC_BITS-1:0] - 1'b1)) begin 
+				     puck2_velocity.x = 0-puck2_velocity.x;
+				  end // if  
+		
+              // See if we have bounced of the paddle on the bottom row of
+	           // the screen		
+				  
+		        if (puck2.y[DATA_WIDTH_COORD-1:FRAC_BITS] >= PADDLE_ROW[FRAC_BITS-1:0] - 1'b1) begin 
+				     if ((puck2.x >= paddle_x) &
+					      (puck2.x[DATA_WIDTH_COORD-1:FRAC_BITS] <= paddle_x[DATA_WIDTH_COORD-1:FRAC_BITS] + PADDLE_WIDTH[FRAC_BITS-1:0])) begin
+							
+					     // we have bounced off the paddle
+   				     puck2_velocity.y = 0-puck2_velocity.y;				
+				     end else begin
+				        // we are at the bottom row, but missed the paddle.  Reset game!
+					     state <= INIT;
+					  end // if
+				  end // if  
+
 	  
 			 end  // if
         end // case IDLE
@@ -522,31 +578,6 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
 				  puck.x = puck.x + puck_velocity.x;
 				  puck.y = puck.y + puck_velocity.y;				  
 				  
-				  // See if we have bounced off the top of the screen
-				  if (puck.y[DATA_WIDTH_COORD-1:FRAC_BITS] == TOP_LINE[FRAC_BITS-1:0] + 1'b1) begin
-				     puck_velocity.y = 0-puck_velocity.y;
-				  end // if
-
-				  // See if we have bounced off the right or left of the screen
-				  if ( (puck.x[DATA_WIDTH_COORD-1:FRAC_BITS] == LEFT_LINE[FRAC_BITS-1:0] + 1'b1) |
-				       (puck.x[DATA_WIDTH_COORD-1:FRAC_BITS] == RIGHT_LINE[FRAC_BITS-1:0] - 1'b1)) begin 
-				     puck_velocity.x = 0-puck_velocity.x;
-				  end // if  
-		
-              // See if we have bounced of the paddle on the bottom row of
-	           // the screen		
-				  
-		        if (puck.y[DATA_WIDTH_COORD-1:FRAC_BITS] == PADDLE_ROW[FRAC_BITS-1:0] - 1'b1) begin 
-				     if ((puck.x >= paddle_x) &
-					      (puck.x[DATA_WIDTH_COORD-1:FRAC_BITS] <= paddle_x[DATA_WIDTH_COORD-1:FRAC_BITS] + PADDLE_WIDTH[FRAC_BITS-1:0])) begin
-							
-					     // we have bounced off the paddle
-   				     puck_velocity.y = 0-puck_velocity.y;				
-				     end else begin
-				        // we are at the bottom row, but missed the paddle.  Reset game!
-					     state <= INIT;
-					  end // if
-				  end // if  
 			 end // ERASE_PUCK
 				  
 		  // ============================================================
@@ -572,31 +603,6 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
 				  puck2.x = puck2.x + puck2_velocity.x;
 				  puck2.y = puck2.y + puck2_velocity.y;				  
 				  
-				  // See if we have bounced off the top of the screen
-				  if (puck2.y[DATA_WIDTH_COORD-1:FRAC_BITS] == TOP_LINE[FRAC_BITS-1:0] + 1'b1) begin
-				     puck2_velocity.y = 0-puck2_velocity.y;
-				  end // if
-
-				  // See if we have bounced off the right or left of the screen
-				  if ( (puck2.x[DATA_WIDTH_COORD-1:FRAC_BITS] == LEFT_LINE[FRAC_BITS-1:0] + 1'b1) |
-				       (puck2.x[DATA_WIDTH_COORD-1:FRAC_BITS] == RIGHT_LINE[FRAC_BITS-1:0] - 1'b1)) begin 
-				     puck2_velocity.x = 0-puck2_velocity.x;
-				  end // if  
-		
-              // See if we have bounced of the paddle on the bottom row of
-	           // the screen		
-				  
-		        if (puck2.y[DATA_WIDTH_COORD-1:FRAC_BITS] == PADDLE_ROW[FRAC_BITS-1:0] - 1'b1) begin 
-				     if ((puck2.x >= paddle_x) &
-					      (puck2.x[DATA_WIDTH_COORD-1:FRAC_BITS] <= paddle_x[DATA_WIDTH_COORD-1:FRAC_BITS] + PADDLE_WIDTH[FRAC_BITS-1:0])) begin
-							
-					     // we have bounced off the paddle
-   				     puck2_velocity.y = 0-puck2_velocity.y;				
-				     end else begin
-				        // we are at the bottom row, but missed the paddle.  Reset game!
-					     state <= INIT;
-					  end // if
-				  end // if  
 			 end // ERASE_PUCK
 				  
 		  // ============================================================
