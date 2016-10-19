@@ -75,13 +75,13 @@ parameter FACEOFF_X2 = SCREEN_WIDTH/2 - 20;
 parameter FACEOFF_Y2 = SCREEN_HEIGHT/2; 
   
 // Starting Velocity
-parameter VELOCITY_START_X = 16'b0000000010000000;
-parameter VELOCITY_START_Y = 16'b0000000111100000;
+parameter VELOCITY_START_X = 16'b0000000000001000;
+parameter VELOCITY_START_Y = 16'b0000000111111110;
 
 parameter VELOCITY_START_X2 = 16'b0000000100000000;
 parameter VELOCITY_START_Y2 = -16'b0000000100000000;
 
-parameter GRAVITY_VELOCITY_PER_SECOND = 16'b0000000000001000;
+parameter GRAVITY = 16'b0000000000100000;
 
 
 // This parameter indicates how many times the counter should count in the
