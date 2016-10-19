@@ -105,8 +105,8 @@ vga_adapter #( .RESOLUTION("160x120"))
 // driven by draw.x and draw.y.   The process below will update
 // signals draw.x and draw.y.
   
-assign x = draw.x[7:0];
-assign y = draw.y[6:0];
+assign x = draw.x[FRAC_BITS + 7:FRAC_BITS];
+assign y = draw.y[FRAC_BITS + 6:FRAC_BITS];
 
 
 always @(posedge CLOCK_50, negedge KEY[3])
@@ -166,13 +166,13 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
    if (KEY[3] == 1'b0) begin	
       draw.x <= 0;
       draw.y <= 0;		  
-      paddle_x <= PADDLE_X_START[DATA_WIDTH_COORD-1:0];
-      puck.x <= FACEOFF_X[DATA_WIDTH_COORD-1:0];
-      puck.y <= FACEOFF_Y[DATA_WIDTH_COORD-1:0];
+      paddle_x[DATA_WIDTH_COORD-1:FRAC_BITS] <= PADDLE_X_START[FRAC_BITS-1:0];
+      puck.x[DATA_WIDTH_COORD-1:FRAC_BITS] <= FACEOFF_X[FRAC_BITS-1:0];
+      puck.y[DATA_WIDTH_COORD-1:FRAC_BITS] <= FACEOFF_Y[FRAC_BITS-1:0];
       puck_velocity.x <= VELOCITY_START_X[DATA_WIDTH_COORD-1:0];
       puck_velocity.y <= VELOCITY_START_Y[DATA_WIDTH_COORD-1:0];
-	  puck2.x <= FACEOFF_X2[DATA_WIDTH_COORD-1:0];
-	  puck2.y <= FACEOFF_Y2[DATA_WIDTH_COORD-1:0];
+	  puck2.x[DATA_WIDTH_COORD-1:FRAC_BITS] <= FACEOFF_X2[FRAC_BITS-1:0];
+	  puck2.y[DATA_WIDTH_COORD-1:FRAC_BITS] <= FACEOFF_Y2[FRAC_BITS-1:0];
 	  puck2_velocity.x <= VELOCITY_START_X2[DATA_WIDTH_COORD-1:0];
       puck2_velocity.y <= VELOCITY_START_Y2[DATA_WIDTH_COORD-1:0];
       colour <= BLACK;
@@ -193,13 +193,13 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
          INIT : begin
             draw.x <= 0;
             draw.y <= 0;		  
-            paddle_x <= PADDLE_X_START[DATA_WIDTH_COORD-1:0];
-            puck.x <= FACEOFF_X[DATA_WIDTH_COORD-1:0];
-            puck.y <= FACEOFF_Y[DATA_WIDTH_COORD-1:0];
+            paddle_x[DATA_WIDTH_COORD-1:FRAC_BITS] <= PADDLE_X_START[FRAC_BITS-1:0];
+            puck.x[DATA_WIDTH_COORD-1:FRAC_BITS] <= FACEOFF_X[FRAC_BITS-1:0];
+            puck.y[DATA_WIDTH_COORD-1:FRAC_BITS] <= FACEOFF_Y[FRAC_BITS-1:0];
             puck_velocity.x <= VELOCITY_START_X[DATA_WIDTH_COORD-1:0];
             puck_velocity.y <= VELOCITY_START_Y[DATA_WIDTH_COORD-1:0];
-			puck2.x <= FACEOFF_X2[DATA_WIDTH_COORD-1:0];
-			puck2.y <= FACEOFF_Y2[DATA_WIDTH_COORD-1:0];
+			puck2.x[DATA_WIDTH_COORD-1:FRAC_BITS] <= FACEOFF_X2[FRAC_BITS-1:0];
+			puck2.y[DATA_WIDTH_COORD-1:FRAC_BITS] <= FACEOFF_Y2[FRAC_BITS-1:0];
 			puck2_velocity.x <= VELOCITY_START_X2[DATA_WIDTH_COORD-1:0];
 			puck2_velocity.y <= VELOCITY_START_Y2[DATA_WIDTH_COORD-1:0];
             colour <= BLACK;
@@ -217,8 +217,8 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
          START: begin
 		  
 		       // See if we are done erasing the screen		    
-            if (draw.x == SCREEN_WIDTH-1) begin
-              if (draw.y == SCREEN_HEIGHT-1) begin
+            if (draw.x[DATA_WIDTH_COORD-1:FRAC_BITS] == SCREEN_WIDTH-1) begin
+              if (draw.y[DATA_WIDTH_COORD-1:FRAC_BITS] == SCREEN_HEIGHT-1) begin
 				
 				     // We are done erasing the screen.  Set the next state 
 				     // to DRAW_TOP_ENTER
@@ -230,14 +230,14 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
 				     // In this cycle we will be erasing a pixel.  Update 
 				     // draw.y so that next time it will erase the next pixel
 				  
-                 draw.y <= draw.y + 1'b1;
+                 draw.y[DATA_WIDTH_COORD-1:FRAC_BITS] <= draw.y[DATA_WIDTH_COORD-1:FRAC_BITS] + 1'b1;
       			  draw.x <= 1'b0;				  
                end  // else
              end else begin
 	
                // Update draw.x so next time it will erase the next pixel    
   		  	  	
-               draw.x <= draw.x + 1'b1;
+               draw.x[DATA_WIDTH_COORD-1:FRAC_BITS] <= draw.x[DATA_WIDTH_COORD-1:FRAC_BITS] + 1'b1;
 
 				 end // if
            end // case START
@@ -250,8 +250,8 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
 		  // ============================================================
 		  
 		  DRAW_TOP_ENTER: begin				
-			     draw.x <= LEFT_LINE[DATA_WIDTH_COORD-1:0];
-				  draw.y <= TOP_LINE[DATA_WIDTH_COORD-1:0];
+			     draw.x[DATA_WIDTH_COORD-1:FRAC_BITS] <= LEFT_LINE[FRAC_BITS-1:0];
+				  draw.y[DATA_WIDTH_COORD-1:FRAC_BITS] <= TOP_LINE[FRAC_BITS-1:0];
 				  colour <= RED;
 				  state <= DRAW_TOP_LOOP;
 			  end // case DRAW_TOP_ENTER
@@ -266,14 +266,14 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
         DRAW_TOP_LOOP: begin	
 		  
            // See if we have been in this state long enough to have completed the line
-    		  if (draw.x == RIGHT_LINE) begin
+    		  if (draw.x[DATA_WIDTH_COORD-1:FRAC_BITS] == RIGHT_LINE[FRAC_BITS-1:0]) begin
 			     // if so, the next state is DRAW_RIGHT_ENTER			  
               state <= DRAW_RIGHT_ENTER; // next state is DRAW_RIGHT
            end else begin
 				
 				  // Otherwise, update draw.x to point to the next pixel
-              draw.y <= TOP_LINE[DATA_WIDTH_COORD-1:0];
-              draw.x <= draw.x + 1'b1;
+              draw.y[DATA_WIDTH_COORD-1:FRAC_BITS] <= TOP_LINE[FRAC_BITS-1:0];
+              draw.x[DATA_WIDTH_COORD-1:FRAC_BITS] <= draw.x[DATA_WIDTH_COORD-1:FRAC_BITS] + 1'b1;
 				  
 				  // Do not change the state, since we want to come back to this state
 				  // the next time we come through this process (at the next rising clock
@@ -289,8 +289,8 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
 		  // ============================================================
 
 		  DRAW_RIGHT_ENTER: begin				
-			     draw.x <= RIGHT_LINE[DATA_WIDTH_COORD-1:0];
-				  draw.y <= TOP_LINE[DATA_WIDTH_COORD-1:0];
+			     draw.x[DATA_WIDTH_COORD-1:FRAC_BITS] <= RIGHT_LINE[FRAC_BITS-1:0];
+				  draw.y[DATA_WIDTH_COORD-1:FRAC_BITS] <= TOP_LINE[FRAC_BITS-1:0];
 				  state <= DRAW_RIGHT_LOOP;
 			  end // case DRAW_RIGHT_ENTER		  
    		  
@@ -304,7 +304,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
 		  DRAW_RIGHT_LOOP: begin
 
 		  // See if we have been in this state long enough to have completed the line
-	   	  if (draw.y == SCREEN_HEIGHT-1) begin
+	   	  if (draw.y[DATA_WIDTH_COORD-1:FRAC_BITS] == SCREEN_HEIGHT-1) begin
 		  
 			     // We are done, so the next state is DRAW_LEFT_ENTER	  
 	 
@@ -312,8 +312,8 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
             end else begin
 
 				  // Otherwise, update draw.y to point to the next pixel				
-              draw.x <= RIGHT_LINE[DATA_WIDTH_COORD-1:0];
-              draw.y <= draw.y + 1'b1;
+              draw.x[DATA_WIDTH_COORD-1:FRAC_BITS] <= RIGHT_LINE[FRAC_BITS-1:0];
+              draw.y[DATA_WIDTH_COORD-1:FRAC_BITS] <= draw.y[DATA_WIDTH_COORD-1:FRAC_BITS] + 1'b1;
             end	
            end //case DRAW_RIGHT_LOOP
 		  // ============================================================
@@ -324,8 +324,8 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
 		  // ============================================================
 
 		  DRAW_LEFT_ENTER: begin				
-			     draw.x <= LEFT_LINE[DATA_WIDTH_COORD-1:0];
-				  draw.y <= TOP_LINE[DATA_WIDTH_COORD-1:0];
+			     draw.x[DATA_WIDTH_COORD-1:FRAC_BITS] <= LEFT_LINE[FRAC_BITS-1:0];
+				  draw.y[DATA_WIDTH_COORD-1:FRAC_BITS] <= TOP_LINE[FRAC_BITS-1:0];
 				  state <= DRAW_LEFT_LOOP;
 			  end // case DRAW_LEFT_ENTER				  
    		  
@@ -339,7 +339,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
 		  DRAW_LEFT_LOOP: begin 
 
 		  // See if we have been in this state long enough to have completed the line		  
-          if (draw.y == SCREEN_HEIGHT-1) begin
+          if (draw.y[DATA_WIDTH_COORD-1:FRAC_BITS] == SCREEN_HEIGHT-1) begin
 
 			     // We are done, so get things set up for the IDLE state, which 
 				  // comes next.  
@@ -350,8 +350,8 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
             end else begin
 				
 				  // Otherwise, update draw.y to point to the next pixel					
-              draw.x <= LEFT_LINE[DATA_WIDTH_COORD-1:0];
-              draw.y <= draw.y + 1'b1;
+              draw.x[DATA_WIDTH_COORD-1:FRAC_BITS] <= LEFT_LINE[FRAC_BITS-1:0];
+              draw.y[DATA_WIDTH_COORD-1:FRAC_BITS] <= draw.y[DATA_WIDTH_COORD-1:FRAC_BITS] + 1'b1;
             end
            end //case DRAW_LEFT_LOOP
 		
@@ -392,8 +392,8 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
 		  // ============================================================     		 
 
 		  ERASE_PADDLE_ENTER: begin
-           draw.y <= PADDLE_ROW[DATA_WIDTH_COORD-1:0];
-		     draw.x <= paddle_x;	
+           draw.y[DATA_WIDTH_COORD-1:FRAC_BITS] <= PADDLE_ROW[FRAC_BITS-1:0];
+		   draw.x <= paddle_x;	
            colour <= BLACK;
            plot <= 1'b1;			
            state <= ERASE_PADDLE_LOOP;				 
@@ -409,7 +409,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
 		  ERASE_PADDLE_LOOP: begin
 		  
 		      // See if we are done erasing the paddle (done with this state)
-            if (draw.x == paddle_x+ PADDLE_WIDTH[DATA_WIDTH_COORD-1:0]) begin
+            if (draw.x[DATA_WIDTH_COORD-1:FRAC_BITS] == paddle_x[DATA_WIDTH_COORD-1:FRAC_BITS] + PADDLE_WIDTH[FRAC_BITS-1:0]) begin
 			
 				  // If so, the next state is DRAW_PADDLE_ENTER. 
 				  
@@ -419,8 +419,8 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
 
 				  // we are not done erasing the paddle.  Erase the pixel and update
 				  // draw.x by increasing it by 1
-   		     draw.y <= PADDLE_ROW[DATA_WIDTH_COORD-1:0];
-              draw.x <= draw.x + 1'b1;
+   		     draw.y[DATA_WIDTH_COORD-1:FRAC_BITS] <= PADDLE_ROW[FRAC_BITS-1:0];
+              draw.x[DATA_WIDTH_COORD-1:FRAC_BITS] <= draw.x[DATA_WIDTH_COORD-1:FRAC_BITS] + 1'b1;
 				  
 				  // state stays the same, since we want to come back to this state
 				  // next time through the process (next rising clock edge) until 
@@ -447,10 +447,10 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
 				     // If the user has pressed the right button check to make sure we
 					  // are not already at the rightmost position of the screen
 					  
-				     if (paddle_x <= RIGHT_LINE - PADDLE_WIDTH - 2) begin 
+				     if (paddle_x[DATA_WIDTH_COORD-1:FRAC_BITS] <= RIGHT_LINE[FRAC_BITS-1:0] - PADDLE_WIDTH[FRAC_BITS-1:0] - 2) begin 
 
      					   // add 2 to the paddle position
-                  	paddle_x = paddle_x + 2'b10;
+                  	paddle_x[DATA_WIDTH_COORD-1:FRAC_BITS] = paddle_x[DATA_WIDTH_COORD-1:FRAC_BITS] + 2'b10;
 
 					  end // if
 					  
@@ -463,16 +463,16 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
 				     // If the user has pressed the left button check to make sure we
 					  // are not already at the leftmost position of the screen
 				  
-				        if (paddle_x >= LEFT_LINE + 2) begin				 
+				        if (paddle_x[DATA_WIDTH_COORD-1:FRAC_BITS] >= LEFT_LINE[FRAC_BITS-1:0] + 2) begin				 
 					        // subtract 2 from the paddle position 
-   				        paddle_x = paddle_x - 2'b10;						
+   				        paddle_x[DATA_WIDTH_COORD-1:FRAC_BITS] = paddle_x[DATA_WIDTH_COORD-1:FRAC_BITS] - 2'b10;						
 					     end //if
 					  end // if
 				  end //if 
 
               // In this state, draw the first element of the paddle	
 				  
-   		     draw.y <= PADDLE_ROW[DATA_WIDTH_COORD-1:0];				  
+   		     draw.y[DATA_WIDTH_COORD-1:FRAC_BITS] <= PADDLE_ROW[FRAC_BITS-1:0];				  
 				  draw.x <= paddle_x;  // get ready for next state			  
               colour <= RED; // when we draw the paddle, the colour will be WHITE		  
 		        state <= DRAW_PADDLE_LOOP;
@@ -487,7 +487,7 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
 		  DRAW_PADDLE_LOOP: begin
 		  
 		      // See if we are done drawing the paddle
-            if (draw.x == paddle_x+PADDLE_WIDTH) begin
+            if (draw.x[DATA_WIDTH_COORD-1:FRAC_BITS] == paddle_x[DATA_WIDTH_COORD-1:FRAC_BITS]+PADDLE_WIDTH[FRAC_BITS-1:0]) begin
 				
 				  // If we are done drawing the paddle, set up for the next state
 				  
@@ -496,8 +496,8 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
 				end else begin		
 				
 				  // Otherwise, update the x counter to the next location in the paddle 
-              draw.y <= PADDLE_ROW[DATA_WIDTH_COORD-1:0];
-              draw.x <= draw.x + 1'b1;
+              draw.y[DATA_WIDTH_COORD-1:FRAC_BITS] <= PADDLE_ROW[FRAC_BITS-1:0];
+              draw.x[DATA_WIDTH_COORD-1:FRAC_BITS] <= draw.x[DATA_WIDTH_COORD-1:FRAC_BITS] + 1'b1;
 
 				  // state stays the same so we come back to this state until we
 				  // are done drawing the paddle
@@ -523,22 +523,22 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
 				  puck.y = puck.y + puck_velocity.y;				  
 				  
 				  // See if we have bounced off the top of the screen
-				  if (puck.y == TOP_LINE + 1) begin
+				  if (puck.y[DATA_WIDTH_COORD-1:FRAC_BITS] == TOP_LINE[FRAC_BITS-1:0] + 1) begin
 				     puck_velocity.y = 0-puck_velocity.y;
 				  end // if
 
 				  // See if we have bounced off the right or left of the screen
-				  if ( (puck.x == LEFT_LINE + 1) |
-				       (puck.x == RIGHT_LINE - 1)) begin 
+				  if ( (puck.x[DATA_WIDTH_COORD-1:FRAC_BITS] == LEFT_LINE[FRAC_BITS-1:0] + 1) |
+				       (puck.x[DATA_WIDTH_COORD-1:FRAC_BITS] == RIGHT_LINE[FRAC_BITS-1:0] - 1)) begin 
 				     puck_velocity.x = 0-puck_velocity.x;
 				  end // if  
 		
               // See if we have bounced of the paddle on the bottom row of
 	           // the screen		
 				  
-		        if (puck.y == PADDLE_ROW - 1) begin 
+		        if (puck.y[DATA_WIDTH_COORD-1:FRAC_BITS] == PADDLE_ROW[FRAC_BITS-1:0] - 1) begin 
 				     if ((puck.x >= paddle_x) &
-					      (puck.x <= paddle_x + PADDLE_WIDTH)) begin
+					      (puck.x[DATA_WIDTH_COORD-1:FRAC_BITS] <= paddle_x[DATA_WIDTH_COORD-1:FRAC_BITS] + PADDLE_WIDTH[FRAC_BITS-1:0])) begin
 							
 					     // we have bounced off the paddle
    				     puck_velocity.y = 0-puck_velocity.y;				
@@ -573,22 +573,22 @@ always_ff @(posedge CLOCK_50, negedge KEY[3])
 				  puck2.y = puck2.y + puck2_velocity.y;				  
 				  
 				  // See if we have bounced off the top of the screen
-				  if (puck2.y == TOP_LINE + 1) begin
+				  if (puck2.y[DATA_WIDTH_COORD-1:FRAC_BITS] == TOP_LINE[FRAC_BITS-1:0] + 1) begin
 				     puck2_velocity.y = 0-puck2_velocity.y;
 				  end // if
 
 				  // See if we have bounced off the right or left of the screen
-				  if ( (puck2.x == LEFT_LINE + 1) |
-				       (puck2.x == RIGHT_LINE - 1)) begin 
+				  if ( (puck2.x[DATA_WIDTH_COORD-1:FRAC_BITS] == LEFT_LINE[FRAC_BITS-1:0] + 1) |
+				       (puck2.x[DATA_WIDTH_COORD-1:FRAC_BITS] == RIGHT_LINE[FRAC_BITS-1:0] - 1)) begin 
 				     puck2_velocity.x = 0-puck2_velocity.x;
 				  end // if  
 		
               // See if we have bounced of the paddle on the bottom row of
 	           // the screen		
 				  
-		        if (puck2.y == PADDLE_ROW - 1) begin 
+		        if (puck2.y[DATA_WIDTH_COORD-1:FRAC_BITS] == PADDLE_ROW[FRAC_BITS-1:0] - 1) begin 
 				     if ((puck2.x >= paddle_x) &
-					      (puck2.x <= paddle_x + PADDLE_WIDTH)) begin
+					      (puck2.x[DATA_WIDTH_COORD-1:FRAC_BITS] <= paddle_x[DATA_WIDTH_COORD-1:FRAC_BITS] + PADDLE_WIDTH[FRAC_BITS-1:0])) begin
 							
 					     // we have bounced off the paddle
    				     puck2_velocity.y = 0-puck2_velocity.y;				

@@ -4,8 +4,9 @@
 //
 // Data width of each x and y
 //
-
-parameter DATA_WIDTH_COORD = 8;
+parameter FRAC_BITS = 8;
+parameter INT_BITS = 8;
+parameter DATA_WIDTH_COORD = FRAC_BITS + INT_BITS;
 
 //
 // This file provides useful parameters and types for Lab 3.
@@ -74,11 +75,11 @@ parameter FACEOFF_X2 = SCREEN_WIDTH/2 - 20;
 parameter FACEOFF_Y2 = SCREEN_HEIGHT/2; 
   
 // Starting Velocity
-parameter VELOCITY_START_X = 1;
-parameter VELOCITY_START_Y = -1;
+parameter VELOCITY_START_X = 16'b0000000010000000;
+parameter VELOCITY_START_Y = 16'b0000000100000000;
 
-parameter VELOCITY_START_X2 = 1;
-parameter VELOCITY_START_Y2 = 1;
+parameter VELOCITY_START_X2 = 16'b0000000100000000;
+parameter VELOCITY_START_Y2 = 16'b0000000100000000;
   
 // This parameter indicates how many times the counter should count in the
 // START state between each invocation of the main loop of the program.
